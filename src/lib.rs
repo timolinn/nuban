@@ -1,5 +1,8 @@
+#![allow(unused)]
+
 use std::collections::HashMap;
 
+#[derive(PartialEq, Debug)]
 pub struct Nuban {
     bank_code: u8,
     account_number: u32,
@@ -63,8 +66,16 @@ impl Nuban {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
     #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
+    fn it_returns_new_nuban_instance() {
+        let account = Nuban::new(058, 0982736625);
+        assert_eq!(account, Nuban { bank_code: 058, account_number: 0982736625 });
+    }
+
+    #[test]
+    fn it_returns_false_for_invalid_account() {
+        let account = Nuban::new(058, 0982736625);
+        assert!(!account.is_valid());
     }
 }

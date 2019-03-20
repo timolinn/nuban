@@ -1,10 +1,7 @@
-#![allow(unused)]
+//! This is a lightweight crate for verifying NUBAN numbers
+//! for all Nigerian bank accounts as was directed by the CBN.
 
 use std::collections::HashMap;
-
-fn calculate_check_digit(bank_code: &str, first_nine: &str) -> String {
-    "9".to_string()
-}
 
 #[derive(PartialEq, Debug)]
 pub struct Nuban {
@@ -26,28 +23,14 @@ impl Nuban {
     }
 
     pub fn get_bank_name(&self) -> Result<&str, &str> {
-        Ok("Guaranty trust bank")
+        let banks = self.banks();
+        let bank_name = banks.get(self.bank_code());
+        match bank_name {
+            Some(_name) => Ok(bank_name.unwrap()),
+            None => Err("Bank not found."),
+        }
     }
 
-    /// Checks whether the account number is a valid NUBAN
-    ///
-    /// Returns Ok(true) for valid numbers
-    /// Returns Err(false) for invalid numbers
-    ///
-    /// Usage example
-    ///
-    /// ```rust
-    ///     use nuban::Nuban;
-    ///
-    ///     fn main() {
-    ///         let nuban = Nuban::new("058", "0739082716").unwrap();
-    ///         if let Ok(true) = nuban.is_valid() {
-    ///             println!("'{}' is a valid account number", nuban.account_number());
-    ///         } else {
-    ///             println!("'{}' is not a valid account number", nuban.account_number());
-    ///         }
-    ///     }
-    /// ```
     pub fn is_valid(&self) -> Result<bool, bool> {
         let check_digit = self.account_number.clone().pop().unwrap();
 
@@ -69,13 +52,14 @@ impl Nuban {
     pub fn calculate_check_digit(&self) -> Result<u8, &str> {
 
         let mut account_number = self.account_number.clone();
-        let check_digit = account_number.pop().unwrap();
+        // remove the last char so we can compute the check digit
+        account_number.pop();
 
         let mut numbers = String::new();
         numbers.push_str(&self.bank_code);
         numbers.push_str(&account_number);
 
-        // convert str to a list ints to enable calculation
+        // convert str to a list of ints to enable calculation
         let number_ints = numbers.chars().map(|num| num.to_digit(10).unwrap());
 
         let multipliers = vec![3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3];
@@ -84,14 +68,14 @@ impl Nuban {
             check_sum += num * multipliers[idx];
         }
 
-        let mut correct_check_digit = (10 - (check_sum % 10) as u8);
+        let mut correct_check_digit = 10 - (check_sum % 10) as u8;
         if correct_check_digit == 10 {
             correct_check_digit = 0;
         }
         Ok(correct_check_digit)
     }
 
-    fn banks(&self) -> HashMap<&str, &str> {
+    pub fn banks(&self) -> HashMap<&str, &str> {
         let banks: HashMap<&str, &str> = vec![
             ("044", "Access Bank"),
             ("014", "Afribank"),

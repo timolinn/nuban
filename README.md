@@ -1,22 +1,69 @@
-# NUBAN Verifier
+# NUBAN 🦀
 
-This crate is still under development.
+This is a lightweight Rust crate for verifying NUBAN numbers
+for all Nigerian bank accounts as was directed by the CBN.
 
 ### What does it do?
 
-It checks the validity of a Nigerian bank account number using the NUBAN guidelines.
+It checks the validity of a Nigerian bank account number based on the NUBAN guidelines provided by CBN.
 
 ```rust
     use nuban::Nuban;
 
-    let account = Nuban::new(BANK_CODE, ACCOUNT_NUMBER);
-    println!("{}", account.is_valid());
+    fn main() {
+        // pass the bank code and account number as arguments
+        let nuban = Nuban::new("058", "0739082716").unwrap();
+        if let Ok(true) = nuban.is_valid() {
+            println!("'{}' is a valid account number", nuban.account_number());
+        } else {
+            println!("'{}' is not a valid account number", nuban.account_number());
+        }
+    }
 ```
 
-### Features
+### How to use
 
-+ Get bank name using the code
+Create a `NUBAN` instance using the conventional `new` method
 
-### Progress?
+```rust
+    let nuban = Nuban::new("098", "1038489302").unwrap();
+```
 
-This project is being developed using TDD, run `cargo test` to check progress. Once all existing tests are passing, then it's ready 😄.
+The `new` method returns a `Result` type. It returns an `Err()` type for invalid account number or bank code. Typical when the length of `BANK_CODE` is not equal to `3` or the length of `ACCOUNT_NUMBER` is not equal to `10`.
+
+To check validity on a `NUBAN` instance:
+```rust
+    println!("{}", nuban.is_valid().unwrap());
+```
+
+Also, You have access to helpful methods when using this crate:
+
+> `get_bank_name(&self)`
+
+Returns the full name of the bank. Returns `Err("Bank not found")` for invalid codes.
+
+> `calculate_check_digit(&self)`
+
+Returns the correct check digit of the account number.
+
+> `bank(&self)`
+
+Returns a `HashMap` of all the banks with their codes.
+
+
+### Extra Features
+
++ Get full bank name for valid NUBANs
+
+```rust
+    let nuban = Nuban::new("058", "0739082716").unwrap();
+    println!("{}", nuban.get_bank_name());
+```
+
+## Contributing
+
+- Create an issue if you spot any bug.
+- Feel free to fork and fix or extend the feature.
+- Run `cargo test` to ensure all tests are passing.
+- Add tests for your new features if you can.
+- Send in your pull request 🔥🔥

@@ -1,7 +1,12 @@
 [package]
 name = "nuban"
-version = "0.1.0"
-authors = ["timolinn <timothyonyiuke@gmail.com>"]
+version = "1.0.0"
+authors = ["Timothy Onyiuke <timothyonyiuke@gmail.com>"]
+description = "A light weight crate for verifying account numbers based on NUBAN guidelines"
+license = "MIT"
+keywords = ["banks", "nuban", "cbn", "validator", "nigeria"]
 edition = "2018"
+repository = "timolinn/nuban"
 
-[dependencies]
+[badges]
+travis-ci = { repository = "timolinn/nuban" }

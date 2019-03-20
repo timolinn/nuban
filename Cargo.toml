@@ -6,7 +6,7 @@ description = "A light weight crate for verifying account numbers based on NUBAN
 license = "MIT"
 keywords = ["banks", "nuban", "cbn", "validator", "nigeria"]
 edition = "2018"
-repository = "timolinn/nuban"
+repository = "https://github.com/timolinn/nuban"
 
 [badges]
 travis-ci = { repository = "timolinn/nuban" }

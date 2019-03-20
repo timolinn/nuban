@@ -29,6 +29,25 @@ impl Nuban {
         Ok("Guaranty trust bank")
     }
 
+    /// Checks whether the account number is a valid NUBAN
+    ///
+    /// Returns Ok(true) for valid numbers
+    /// Returns Err(false) for invalid numbers
+    ///
+    /// Usage example
+    ///
+    /// ```rust
+    ///     use nuban::Nuban;
+    ///
+    ///     fn main() {
+    ///         let nuban = Nuban::new("058", "0739082716");
+    ///         if let nuban.is_valid() = Ok(true) {
+    ///             println!("'{}' is a valid account number", nuban.account_number());
+    ///         } else {
+    ///             println!("'{}' is not a valid account number", nuban.account_number());
+    ///         }
+    ///     }
+    /// ```
     pub fn is_valid(&self) -> Result<bool, bool> {
         let mut account_number = self.account_number.clone();
         let check_digit = account_number.pop().unwrap();
@@ -53,7 +72,7 @@ impl Nuban {
         if correct_check_digit == check_digit.to_digit(10).unwrap()  {
             Ok(true)
         } else {
-            Ok(false)
+            Err(false)
         }
     }
 
@@ -124,12 +143,12 @@ mod tests {
     #[test]
     fn it_returns_false_for_invalid_account() {
         let account = Nuban::new("058", "0982736625").unwrap();
-        assert!(!account.is_valid().unwrap());
+        assert!(account.is_valid().is_err());
     }
 
     #[test]
     fn it_returns_true_for_valid_account() {
         let account = Nuban::new("058", "0152792740").unwrap();
-        assert!(account.is_valid().unwrap());
+        assert!(account.is_valid().is_ok());
     }
 }

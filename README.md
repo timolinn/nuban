@@ -5,7 +5,7 @@ for all Nigerian bank accounts as was directed by the CBN.
 
 ### What does it do?
 
-It checks the validity of a Nigerian bank account number based on the NUBAN guidelines provided by CBN.
+It checks the validity of a Nigerian bank account number based on the NUBAN guidelines provided by the CBN.
 
 ```rust
     use nuban::Nuban;
@@ -67,3 +67,9 @@ Returns a `HashMap` of all the banks with their codes.
 - Run `cargo test` to ensure all tests are passing.
 - Add tests for your new features if you can.
 - Send in your pull request 🔥🔥
+
+## Other
+
+Like this crate? Please star this repo.
+
+You can give me a shoutout on [Twitter](https://twitter.com/timolinn_)

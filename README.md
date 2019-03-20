@@ -35,7 +35,7 @@ Create a `NUBAN` instance using the conventional `new` method
     let nuban = Nuban::new("098", "1038489302").unwrap();
 ```
 
-The `new` method returns a `Result` type. It returns an `Err()` type for invalid account number or bank code. Typical when the length of `BANK_CODE` is not equal to `3` or the length of `ACCOUNT_NUMBER` is not equal to `10`.
+The `new` method returns a `Result` type. It returns an `Err()` type for invalid account number or bank code. Typically when the length of `BANK_CODE` is not equal to `3` or the length of `ACCOUNT_NUMBER` is not equal to `10`.
 
 To check validity on a `NUBAN` instance:
 ```rust
@@ -52,7 +52,7 @@ Returns the full name of the bank. Returns `Err("Bank not found")` for invalid c
 
 Returns the correct check digit of the account number.
 
-> `bank(&self)`
+> `banks(&self)`
 
 Returns a `HashMap` of all the banks with their codes.
 

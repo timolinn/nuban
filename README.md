@@ -10,7 +10,12 @@ for all Nigerian bank accounts as was directed by the CBN.
 
 It checks the validity of a Nigerian bank account number based on the NUBAN guidelines provided by the CBN.
 
+
+### How to use
+
 ```rust
+    extern crate nuban;
+
     use nuban::Nuban;
 
     fn main() {
@@ -23,8 +28,6 @@ It checks the validity of a Nigerian bank account number based on the NUBAN guid
         }
     }
 ```
-
-### How to use
 
 Create a `NUBAN` instance using the conventional `new` method
 

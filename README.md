@@ -1,6 +1,7 @@
 # NUBAN 🦀
 
 [![Build Status](https://travis-ci.org/timolinn/nuban.svg?branch=master)](https://travis-ci.org/timolinn/nuban)
+![crates.io](https://img.shields.io/crates/v/nuban.svg)
 
 This is a lightweight Rust crate for verifying NUBAN numbers
 for all Nigerian bank accounts as was directed by the CBN.

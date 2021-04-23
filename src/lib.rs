@@ -43,12 +43,28 @@ pub struct Nuban {
     account_number: String,
 }
 
-impl Nuban {
-    pub fn new(bank_code: &str, account_number: &str) -> Result<Self, &'static str> {
+#[derive(Eq, Copy, Clone, Debug, PartialEq)]
+pub enum Error {
+    InvalidBankCode,
+    InvalidAccountNumber,
+}
 
-        if bank_code.len() != 3 || account_number.len() != 10 {
-            return Err("Validation Error: invalid bank code or account number");
-        }
+impl fmt::Display for Error {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        let reason = match self {
+            Error::InvalidBankCode => "invalid bank code",
+            Error::InvalidAccountNumber => "invalid account number",
+        };
+        write!(f, "{}", reason)
+    }
+}
+
+impl Nuban {
+    pub fn new(bank_code: &str, account_number: &str) -> Result<Self, Error> {
+        #[rustfmt::skip] {
+            if bank_code.len() != 3 || !Self::is_valid_bank(bank_code) { Err(Error::InvalidBankCode)? }
+            if account_number.len() != 10 { Err(Error::InvalidAccountNumber)? }
+        };
 
         Ok(Nuban {
             bank_code: bank_code.to_string(),
@@ -56,19 +72,18 @@ impl Nuban {
         })
     }
 
-    pub fn get_bank_name(&self) -> Result<&str, &str> {
-        let banks = Self::banks();
-        let bank_name = banks.get(self.bank_code());
-        match bank_name {
-            Some(_name) => Ok(bank_name.unwrap()),
-            None => Err("Bank not found."),
-        }
+    pub fn get_bank_name(&self) -> &str {
+        Self::banks().get(self.bank_code()).copied().unwrap()
     }
 
     pub fn is_valid(&self) -> bool {
         let check_digit = self.account_number.chars().last().unwrap();
         let check_digit = check_digit.to_digit(10).unwrap() as u8;
         self.calculate_check_digit() == check_digit
+    }
+
+    pub fn is_valid_bank(bank_code: &str) -> bool {
+        Self::banks().contains_key(bank_code)
     }
 
     pub fn account_number(&self) -> &str {
@@ -150,6 +165,6 @@ mod tests {
     #[test]
     fn test_get_bank_name() {
         let account = Nuban::new("058", "0152792740").unwrap();
-        assert_eq!(account.get_bank_name().unwrap(), String::from("Guaranty Trust Bank"));
+        assert_eq!(account.get_bank_name(), String::from("Guaranty Trust Bank"));
     }
 }

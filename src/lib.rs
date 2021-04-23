@@ -37,7 +37,7 @@ unsafe impl Sync for LazyBanks {}
 
 static LAZY_BANKS: LazyBanks = LazyBanks(Once::new(), Cell::new(None));
 
-#[derive(PartialEq, Debug)]
+#[derive(Eq, Clone, Debug, PartialEq)]
 pub struct Nuban {
     bank_code: String,
     account_number: String,

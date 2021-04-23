@@ -32,8 +32,9 @@ impl Nuban {
     }
 
     pub fn is_valid(&self) -> bool {
-        let check_digit = self.account_number.clone().pop().unwrap();
-        self.calculate_check_digit() == check_digit.to_digit(10).unwrap() as u8
+        let check_digit = self.account_number.chars().last().unwrap();
+        let check_digit = check_digit.to_digit(10).unwrap() as u8;
+        self.calculate_check_digit() == check_digit
     }
 
     pub fn account_number(&self) -> &str {

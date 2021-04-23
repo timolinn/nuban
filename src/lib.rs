@@ -57,7 +57,7 @@ impl Nuban {
         // convert str to a list of ints to enable calculation
         let number_ints = numbers.chars().map(|num| num.to_digit(10).unwrap());
 
-        let multipliers = vec![3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3];
+        let multipliers = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3];
         let mut check_sum = 0;
         for (idx, num) in number_ints.enumerate() {
             check_sum += num * multipliers[idx];
@@ -71,7 +71,7 @@ impl Nuban {
     }
 
     pub fn banks(&self) -> HashMap<&str, &str> {
-        let banks: HashMap<&str, &str> = vec![
+        [
             ("044", "Access Bank"),
             ("014", "Afribank"),
             ("023", "Citibank"),
@@ -97,9 +97,9 @@ impl Nuban {
             ("057", "Zenith Bank"),
             ("215", "Unity Bank"),
         ]
-        .into_iter()
-        .collect();
-        banks
+        .iter()
+        .copied()
+        .collect()
     }
 }
 

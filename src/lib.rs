@@ -33,7 +33,7 @@ impl Nuban {
 
     pub fn is_valid(&self) -> bool {
         let check_digit = self.account_number.clone().pop().unwrap();
-        self.calculate_check_digit().unwrap() == check_digit.to_digit(10).unwrap() as u8
+        self.calculate_check_digit() == check_digit.to_digit(10).unwrap() as u8
     }
 
     pub fn account_number(&self) -> &str {
@@ -44,30 +44,22 @@ impl Nuban {
         &self.bank_code
     }
 
-    pub fn calculate_check_digit(&self) -> Result<u8, &str> {
+    pub fn calculate_check_digit(&self) -> u8 {
+        // 098273662[5]
+        //           ^= check digit
+        let account_number = &self.account_number[..self.account_number.len() - 1];
+        let numbers = format!("{}{}", self.bank_code, account_number);
 
-        let mut account_number = self.account_number.clone();
-        // remove the last char so we can compute the check digit
-        account_number.pop();
+        let check_sum: u32 = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3]
+            .iter()
+            .zip(numbers.chars().map(|num| num.to_digit(10).unwrap()))
+            .map(|(l, r)| l * r)
+            .sum();
 
-        let mut numbers = String::new();
-        numbers.push_str(&self.bank_code);
-        numbers.push_str(&account_number);
-
-        // convert str to a list of ints to enable calculation
-        let number_ints = numbers.chars().map(|num| num.to_digit(10).unwrap());
-
-        let multipliers = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3];
-        let mut check_sum = 0;
-        for (idx, num) in number_ints.enumerate() {
-            check_sum += num * multipliers[idx];
+        match 10 - (check_sum % 10) as u8 {
+            10 => 0,
+            x => x,
         }
-
-        let mut correct_check_digit = 10 - (check_sum % 10) as u8;
-        if correct_check_digit == 10 {
-            correct_check_digit = 0;
-        }
-        Ok(correct_check_digit)
     }
 
     pub fn banks(&self) -> HashMap<&str, &str> {
@@ -133,7 +125,7 @@ mod tests {
     #[test]
     fn test_calculate_check_digit() {
         let account = Nuban::new("058", "0152792740").unwrap();
-        let correct_check_digit = account.calculate_check_digit().unwrap();
+        let correct_check_digit = account.calculate_check_digit();
         assert_eq!(correct_check_digit, 0);
     }
 

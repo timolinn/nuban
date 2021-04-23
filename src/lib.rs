@@ -2,6 +2,40 @@
 //! for all Nigerian bank accounts as was directed by the CBN.
 
 use std::collections::HashMap;
+use std::{cell::Cell, sync::Once};
+
+pub const BANKS: [(&'static str, &'static str); 24] = [
+    ("044", "Access Bank"),
+    ("014", "Afribank"),
+    ("023", "Citibank"),
+    ("063", "Diamond Bank"),
+    ("050", "Ecobank"),
+    ("040", "Equitorial Trust Bank"),
+    ("011", "First Bank"),
+    ("214", "FCMB"),
+    ("070", "Fidelity"),
+    ("085", "FinBank"),
+    ("058", "Guaranty Trust Bank"),
+    ("069", "Intercontinentl Bank"),
+    ("056", "Oceanic Bank"),
+    ("082", "BankPhb"),
+    ("076", "Skye Bank"),
+    ("084", "SpringBank"),
+    ("221", "StanbicIBTC"),
+    ("068", "Standard Chartered Bank"),
+    ("232", "Sterling Bank"),
+    ("033", "United Bank For Africa"),
+    ("032", "Union Bank"),
+    ("035", "Wema Bank"),
+    ("057", "Zenith Bank"),
+    ("215", "Unity Bank"),
+];
+
+struct LazyBanks(Once, Cell<Option<HashMap<&'static str, &'static str>>>);
+
+unsafe impl Sync for LazyBanks {}
+
+static LAZY_BANKS: LazyBanks = LazyBanks(Once::new(), Cell::new(None));
 
 #[derive(PartialEq, Debug)]
 pub struct Nuban {
@@ -65,36 +99,17 @@ impl Nuban {
         }
     }
 
-    pub fn banks() -> HashMap<&'static str, &'static str> {
-        [
-            ("044", "Access Bank"),
-            ("014", "Afribank"),
-            ("023", "Citibank"),
-            ("063", "Diamond Bank"),
-            ("050", "Ecobank"),
-            ("040", "Equitorial Trust Bank"),
-            ("011", "First Bank"),
-            ("214", "FCMB"),
-            ("070", "Fidelity"),
-            ("085", "FinBank"),
-            ("058", "Guaranty Trust Bank"),
-            ("069", "Intercontinentl Bank"),
-            ("056", "Oceanic Bank"),
-            ("082", "BankPhb"),
-            ("076", "Skye Bank"),
-            ("084", "SpringBank"),
-            ("221", "StanbicIBTC"),
-            ("068", "Standard Chartered Bank"),
-            ("232", "Sterling Bank"),
-            ("033", "United Bank For Africa"),
-            ("032", "Union Bank"),
-            ("035", "Wema Bank"),
-            ("057", "Zenith Bank"),
-            ("215", "Unity Bank"),
-        ]
-        .iter()
-        .copied()
-        .collect()
+    pub fn banks() -> &'static HashMap<&'static str, &'static str> {
+        LAZY_BANKS
+            .0
+            .call_once(|| LAZY_BANKS.1.set(Some(BANKS.iter().copied().collect())));
+
+        unsafe {
+            if let Some(ref banks) = *LAZY_BANKS.1.as_ptr() {
+                return banks;
+            }
+            unreachable!()
+        }
     }
 }
 

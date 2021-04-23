@@ -46,17 +46,19 @@ impl Nuban {
     }
 
     pub fn calculate_check_digit(&self) -> u8 {
-        // 098273662[5]
-        //           ^= check digit
-        let account_number = &self.account_number[..self.account_number.len() - 1];
-        let numbers = format!("{}{}", self.bank_code, account_number);
+        // The Approved NUBAN format: [ABC][DEFGHIJKL][M], where
+        //   -       ABC : 3-digit Bank Code
+        //   - DEFGHIJKL : NUBAN Account Serial Number
+        //   -         M : NUBAN Check Digit
+        // https://www.cbn.gov.ng/OUT/2011/CIRCULARS/BSPD/NUBAN%20PROPOSALS%20V%200%204-%2003%2009%202010.PDF
+        // let numbers = format!("{}{}", , &self.account_number[..9]);
 
-        let check_sum: u32 = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3]
-            .iter()
-            .zip(numbers.chars().map(|num| num.to_digit(10).unwrap()))
-            .map(|(l, r)| l * r)
-            .sum();
-
+        let bank_code = self.bank_code.chars();
+        let account_number = self.account_number.chars().take(9);
+        let nuban_chars = bank_code.chain(account_number);
+        let nuban_digits = nuban_chars.map(|num| num.to_digit(10).unwrap());
+        let seed = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3].iter();
+        let check_sum: u32 = seed.zip(nuban_digits).map(|(l, r)| l * r).sum();
         match 10 - (check_sum % 10) as u8 {
             10 => 0,
             x => x,

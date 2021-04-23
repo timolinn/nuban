@@ -23,7 +23,7 @@ impl Nuban {
     }
 
     pub fn get_bank_name(&self) -> Result<&str, &str> {
-        let banks = self.banks();
+        let banks = Self::banks();
         let bank_name = banks.get(self.bank_code());
         match bank_name {
             Some(_name) => Ok(bank_name.unwrap()),
@@ -65,7 +65,7 @@ impl Nuban {
         }
     }
 
-    pub fn banks(&self) -> HashMap<&str, &str> {
+    pub fn banks() -> HashMap<&'static str, &'static str> {
         [
             ("044", "Access Bank"),
             ("014", "Afribank"),

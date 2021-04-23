@@ -31,14 +31,9 @@ impl Nuban {
         }
     }
 
-    pub fn is_valid(&self) -> Result<bool, bool> {
+    pub fn is_valid(&self) -> bool {
         let check_digit = self.account_number.clone().pop().unwrap();
-
-        if self.calculate_check_digit().unwrap() == check_digit.to_digit(10).unwrap() as u8 {
-            Ok(true)
-        } else {
-            Err(false)
-        }
+        self.calculate_check_digit().unwrap() == check_digit.to_digit(10).unwrap() as u8
     }
 
     pub fn account_number(&self) -> &str {
@@ -126,13 +121,13 @@ mod tests {
     #[test]
     fn test_returns_false_for_invalid_account() {
         let account = Nuban::new("058", "0982736625").unwrap();
-        assert!(account.is_valid().is_err());
+        assert!(!account.is_valid());
     }
 
     #[test]
     fn test_returns_true_for_valid_account() {
         let account = Nuban::new("058", "0152792740").unwrap();
-        assert!(account.is_valid().is_ok());
+        assert!(account.is_valid());
     }
 
     #[test]

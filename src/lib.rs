@@ -1,8 +1,7 @@
 //! This is a lightweight crate for verifying NUBAN numbers
 //! for all Nigerian bank accounts as was directed by the CBN.
 
-use std::collections::HashMap;
-use std::{cell::Cell, sync::Once};
+use std::{cell::Cell, collections::HashMap, fmt, sync::Once};
 
 pub const BANKS: [(&'static str, &'static str); 24] = [
     ("044", "Access Bank"),
@@ -38,10 +37,7 @@ unsafe impl Sync for LazyBanks {}
 static LAZY_BANKS: LazyBanks = LazyBanks(Once::new(), Cell::new(None));
 
 #[derive(Eq, Clone, Debug, PartialEq)]
-pub struct Nuban {
-    bank_code: String,
-    account_number: String,
-}
+pub struct Nuban<'a>(&'a str, &'a str, &'a str);
 
 #[derive(Eq, Copy, Clone, Debug, PartialEq)]
 pub enum Error {
@@ -59,56 +55,63 @@ impl fmt::Display for Error {
     }
 }
 
-impl Nuban {
-    pub fn new(bank_code: &str, account_number: &str) -> Result<Self, Error> {
+impl<'a> Nuban<'a> {
+    pub fn new(bank_code: &'a str, account_number: &'a str) -> Result<Self, Error> {
         #[rustfmt::skip] {
-            if bank_code.len() != 3 || !Self::is_valid_bank(bank_code) { Err(Error::InvalidBankCode)? }
-            if account_number.len() != 10 { Err(Error::InvalidAccountNumber)? }
+            if !Self::is_valid_bank(bank_code) { Err(Error::InvalidBankCode)? }
+            if account_number.len() != 10  { Err(Error::InvalidAccountNumber)? }
         };
 
-        Ok(Nuban {
-            bank_code: bank_code.to_string(),
-            account_number: account_number.to_string(),
-        })
-    }
-
-    pub fn get_bank_name(&self) -> &str {
-        Self::banks().get(self.bank_code()).copied().unwrap()
-    }
-
-    pub fn is_valid(&self) -> bool {
-        let check_digit = self.account_number.chars().last().unwrap();
-        let check_digit = check_digit.to_digit(10).unwrap() as u8;
-        self.calculate_check_digit() == check_digit
+        let check_digit = {
+            let (account_number, check_digit) = account_number.split_at(9);
+            match (
+                check_digit.chars().next().unwrap().to_digit(10),
+                Self::calculate_check_digit(bank_code, account_number),
+            ) {
+                (Some(l), r) if l != r => Err(Error::InvalidAccountNumber)?,
+                _ => {}
+            };
+            check_digit
+        };
+        Ok(Nuban(bank_code, account_number, check_digit))
     }
 
     pub fn is_valid_bank(bank_code: &str) -> bool {
-        Self::banks().contains_key(bank_code)
+        bank_code.len() == 3 && Self::banks().contains_key(bank_code)
     }
 
-    pub fn account_number(&self) -> &str {
-        &self.account_number
+    pub fn is_valid_account(bank_code: &str, account_number: &str) -> bool {
+        Nuban::new(bank_code, account_number).is_err()
     }
 
     pub fn bank_code(&self) -> &str {
-        &self.bank_code
+        self.0
     }
 
-    pub fn calculate_check_digit(&self) -> u8 {
+    pub fn bank_name(&self) -> &str {
+        Self::banks().get(self.0).unwrap()
+    }
+
+    pub fn account_number(&self) -> &str {
+        self.1
+    }
+
+    pub fn check_digit(&self) -> &str {
+        self.2
+    }
+
+    fn calculate_check_digit(bank_code: &'a str, account_number: &'a str) -> u32 {
         // The Approved NUBAN format: [ABC][DEFGHIJKL][M], where
         //   -       ABC : 3-digit Bank Code
         //   - DEFGHIJKL : NUBAN Account Serial Number
         //   -         M : NUBAN Check Digit
         // https://www.cbn.gov.ng/OUT/2011/CIRCULARS/BSPD/NUBAN%20PROPOSALS%20V%200%204-%2003%2009%202010.PDF
-        // let numbers = format!("{}{}", , &self.account_number[..9]);
 
-        let bank_code = self.bank_code.chars();
-        let account_number = self.account_number.chars().take(9);
-        let nuban_chars = bank_code.chain(account_number);
+        let nuban_chars = bank_code.chars().chain(account_number.chars());
         let nuban_digits = nuban_chars.map(|num| num.to_digit(10).unwrap());
         let seed = [3, 7, 3, 3, 7, 3, 3, 7, 3, 3, 7, 3].iter();
         let check_sum: u32 = seed.zip(nuban_digits).map(|(l, r)| l * r).sum();
-        match 10 - (check_sum % 10) as u8 {
+        match 10 - (check_sum % 10) {
             10 => 0,
             x => x,
         }
@@ -133,38 +136,31 @@ mod tests {
     use super::*;
     #[test]
     fn test_returns_new_nuban_instance() {
-        let account = Nuban::new("058", "0982736625");
-        assert_eq!(
-            account.unwrap(),
-            Nuban {
-                bank_code: String::from("058"),
-                account_number: String::from("0982736625")
-            }
-        );
+        let account = Nuban::new("058", "0152792740");
+        assert_eq!(account.unwrap(), Nuban("058", "0152792740", "0"));
     }
 
     #[test]
     fn test_returns_false_for_invalid_account() {
-        let account = Nuban::new("058", "0982736625").unwrap();
-        assert!(!account.is_valid());
+        let account = Nuban::new("058", "0982736625");
+        assert!(account.is_err());
     }
 
     #[test]
     fn test_returns_true_for_valid_account() {
-        let account = Nuban::new("058", "0152792740").unwrap();
-        assert!(account.is_valid());
+        let account = Nuban::new("058", "0152792740");
+        assert!(account.is_ok());
     }
 
     #[test]
     fn test_calculate_check_digit() {
-        let account = Nuban::new("058", "0152792740").unwrap();
-        let correct_check_digit = account.calculate_check_digit();
+        let correct_check_digit = Nuban::calculate_check_digit("058", "0152792740");
         assert_eq!(correct_check_digit, 0);
     }
 
     #[test]
     fn test_get_bank_name() {
         let account = Nuban::new("058", "0152792740").unwrap();
-        assert_eq!(account.get_bank_name(), String::from("Guaranty Trust Bank"));
+        assert_eq!(account.bank_name(), String::from("Guaranty Trust Bank"));
     }
 }

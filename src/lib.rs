@@ -134,9 +134,7 @@ impl<'a> Nuban<'a> {
         }
     }
 
-    pub fn bank_matches<'b>(
-        account_number: &'b str,
-    ) -> Result<impl Iterator<Item = (&'b str, &'b str)>, Error> {
+    pub fn bank_matches(account_number: &str) -> Result<impl Iterator<Item = (&str, &str)>, Error> {
         #[rustfmt::skip] if account_number.len() != 10  { Err(Error::InvalidAccountNumber)? };
         Ok(BANKS
             .iter()

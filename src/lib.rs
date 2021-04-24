@@ -62,18 +62,22 @@ impl<'a> Nuban<'a> {
             if account_number.len() != 10  { Err(Error::InvalidAccountNumber)? }
         };
 
-        let check_digit = {
-            let (account_number, check_digit) = account_number.split_at(9);
-            match (
-                check_digit.chars().next().unwrap().to_digit(10),
-                Self::calculate_check_digit(bank_code, account_number),
-            ) {
-                (Some(l), r) if l != r => Err(Error::InvalidAccountNumber)?,
-                _ => {}
-            };
-            check_digit
-        };
+        let (_, check_digit) = Self::account_number_parts(bank_code, account_number)?;
         Ok(Nuban(bank_code, account_number, check_digit))
+    }
+
+    fn account_number_parts(
+        bank_code: &'a str,
+        account_number: &'a str,
+    ) -> Result<(&'a str, &'a str), Error> {
+        let (account_number, check_digit) = account_number.split_at(9);
+        match (
+            check_digit.chars().next().unwrap().to_digit(10),
+            Self::calculate_check_digit(bank_code, account_number),
+        ) {
+            (Some(l), r) if l != r => Err(Error::InvalidAccountNumber),
+            _ => Ok((account_number, check_digit)),
+        }
     }
 
     pub fn is_valid_bank(bank_code: &str) -> bool {
@@ -129,6 +133,16 @@ impl<'a> Nuban<'a> {
             unreachable!()
         }
     }
+
+    pub fn bank_matches<'b>(
+        account_number: &'b str,
+    ) -> Result<impl Iterator<Item = (&'b str, &'b str)>, Error> {
+        #[rustfmt::skip] if account_number.len() != 10  { Err(Error::InvalidAccountNumber)? };
+        Ok(BANKS
+            .iter()
+            .copied()
+            .filter(move |(code, _)| Self::account_number_parts(code, account_number).is_ok()))
+    }
 }
 
 #[cfg(test)]
@@ -162,5 +176,19 @@ mod tests {
     fn test_get_bank_name() {
         let account = Nuban::new("058", "0152792740").unwrap();
         assert_eq!(account.bank_name(), String::from("Guaranty Trust Bank"));
+    }
+
+    #[test]
+    fn bank_matches() {
+        let matches = Nuban::bank_matches("2209514399")
+            .unwrap()
+            .map(|(code, _)| code)
+            .collect::<Vec<_>>();
+        let map = [
+            "068", // Standard Chartered Bank
+            "035", // Wema Bank
+            "057", // Zenith Bank
+        ];
+        assert!(map.iter().all(|code| matches.contains(code)));
     }
 }
